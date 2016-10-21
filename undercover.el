@@ -44,6 +44,8 @@
 (defvar undercover--old-edebug-make-form-wrapper
   (symbol-function 'edebug-make-form-wrapper))
 
+(defvar undercover--additional-files '())
+
 ;; Utilities
 
 (defun undercover--fill-hash-table (hash-table &rest keys-and-values)
@@ -343,6 +345,12 @@ Values of that hash are number of covers."
         (undercover--merge-coveralls-report-file-coverage
          old-file-hash new-source-files-report)))))
 
+(defun undercover--add-additional-files (report)
+  "Add additional reports to REPORT with data returned from functions at `undercover--additional-files'."
+  (dolist (additional-report-function undercover--additional-files)
+    (dolist (filehash (funcall additional-report-function))
+      (message filehash))))
+
 (defun undercover--create-coveralls-report ()
   "Create test coverage report for coveralls.io."
   (undercover--collect-files-coverage undercover--files)
@@ -354,6 +362,7 @@ Values of that hash are number of covers."
      ((undercover--under-travic-ci-p) (undercover--update-coveralls-report-with-travis-ci report))
      (t (error "Unsupported coveralls.io report")))
     (undercover--fill-coveralls-report report)
+    (undercover--add-additional-files report)
     (undercover--merge-coveralls-reports report)
     (json-encode report)))
 
