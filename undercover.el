@@ -15,6 +15,8 @@
 
 ;;; Code:
 
+(message "test")
+
 (eval-when-compile (require 'cl))
 
 (require 'edebug)
