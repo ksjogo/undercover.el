@@ -282,22 +282,8 @@ Values of that hash are number of covers."
 (defun undercover--update-coveralls-report-with-travis-ci (report)
   "Update test coverage REPORT for coveralls.io with Travis CI service information."
   (undercover--fill-hash-table report
-    "service_name"   "travis-ci"
-    "service_job_id" (getenv "TRAVIS_JOB_ID")))
-
-(defun undercover--update-coveralls-report-with-git (report)
-  "Update test coverage REPORT for coveralls.io with Git information."
-  (undercover--fill-hash-table report
-    "git" (undercover--make-hash-table
-           "branch"  (undercover--get-git-info "rev-parse" "--abbrev-ref" "HEAD")
-           "remotes" (undercover--get-git-remotes)
-           "head"    (undercover--make-hash-table
-                      "id"              (undercover--get-git-info-from-log "H")
-                      "author_name"     (undercover--get-git-info-from-log "aN")
-                      "author_email"    (undercover--get-git-info-from-log "ae")
-                      "committer_name"  (undercover--get-git-info-from-log "cN")
-                      "committer_email" (undercover--get-git-info-from-log "ce")
-                      "message"         (undercover--get-git-info-from-log "s")))))
+                               "service_name"   "travis-ci"
+                               "service_job_id" (getenv "TRAVIS_JOB_ID")))
 
 (defun undercover--coveralls-file-coverage-report (statistics)
   "Translate file coverage STATISTICS into coveralls.io format."
@@ -316,7 +302,7 @@ Values of that hash are number of covers."
                             (gethash file undercover--files-coverage-statistics))))
       (undercover--make-hash-table
        "name"     file-name
-       "source"   file-content
+       "source_digest"  (md5 file-content)
        "coverage" coverage-report))))
 
 (defun undercover--fill-coveralls-report (report)
@@ -367,7 +353,6 @@ Values of that hash are number of covers."
       (undercover--try-update-coveralls-report-with-shippable report))
      ((undercover--under-travic-ci-p) (undercover--update-coveralls-report-with-travis-ci report))
      (t (error "Unsupported coveralls.io report")))
-    (undercover--update-coveralls-report-with-git report)
     (undercover--fill-coveralls-report report)
     (undercover--merge-coveralls-reports report)
     (json-encode report)))
