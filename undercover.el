@@ -481,8 +481,11 @@ on `kill-emacs' and send it to coveralls.io."
   (let (coverage)
     (with-temp-buffer
       (insert-file-contents file)
-      ;; skip first two lines, as they only provide status information
+      ;; skip first lines, as they only provide status information
+      (re-search-forward "^.*:.*?1:" nil t)
+      (beginning-of-line)
       (forward-line 2)
+      ;; parse each line
       (while (re-search-forward "^ *\\(.*?\\):" nil t)
         (push (undercover--gcov-line-value (match-string-no-properties 1)) coverage))
       (undercover--make-hash-table
