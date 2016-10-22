@@ -484,14 +484,13 @@ on `kill-emacs' and send it to coveralls.io."
       ;; skip first lines, as they only provide status information
       (re-search-forward "^.*:.*?1:" nil t)
       (beginning-of-line)
-      (forward-line 2)
       ;; parse each line
       (while (re-search-forward "^ *\\(.*?\\):" nil t)
         (push (undercover--gcov-line-value (match-string-no-properties 1)) coverage))
       (undercover--make-hash-table
        "name" (file-name-sans-extension file)
        "source_digest" (md5 (buffer-substring-no-properties (point-min) (point-max)))
-       "coverage" coverage))))
+       "coverage" (nreverse coverage)))))
 
 (provide 'undercover)
 ;;; undercover.el ends here
