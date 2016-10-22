@@ -44,7 +44,7 @@
 (defvar undercover--old-edebug-make-form-wrapper
   (symbol-function 'edebug-make-form-wrapper))
 
-(defvar undercover--additional-files '())
+(defvar undercover-additional-files (list))
 
 ;; Utilities
 
@@ -346,10 +346,13 @@ Values of that hash are number of covers."
          old-file-hash new-source-files-report)))))
 
 (defun undercover--add-additional-files (report)
-  "Add additional reports to REPORT with data returned from functions at `undercover--additional-files'."
-  (dolist (additional-report-function undercover--additional-files)
+  "Add additional reports to REPORT with data returned from functions at `undercover-additional-files'."
+  (dolist (additional-report-function undercover-additional-files)
     (dolist (filehash (funcall additional-report-function))
-      (message filehash))))
+      ;; (pp filehash)
+      (rplacd (last (gethash "source_files" report))
+              (cons filehash nil))
+      )))
 
 (defun undercover--create-coveralls-report ()
   "Create test coverage report for coveralls.io."
@@ -461,6 +464,30 @@ on `kill-emacs' and send it to coveralls.io."
     (list
      ,@(--map (if (atom it) it `(list ,@it))
               configuration))))
+
+;; gcov funcs
+
+(defun undercover-gcov-collector (files)
+  (mapcar #'undercover--gcov-parser files))
+
+(defun undercover--gcov-line-value (original)
+  (cond
+   ((string= original "#####") 0)
+   ((string= original "-") nil)
+   (t (string-to-int original))))
+
+(defun undercover--gcov-parser (file)
+  (let (coverage)
+    (with-temp-buffer
+      (insert-file-contents file)
+      ;; skip first two lines, as they only provide status information
+      (forward-line 2)
+      (while (re-search-forward "^ *\\(.*?\\):" nil t)
+        (push (undercover--gcov-line-value (match-string-no-properties 1)) coverage))
+      (undercover--make-hash-table
+       "name" (file-name-sans-extension file)
+       "source_digest" (md5 (buffer-substring-no-properties (point-min) (point-max)))
+       "coverage" coverage))))
 
 (provide 'undercover)
 ;;; undercover.el ends here
