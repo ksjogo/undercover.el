@@ -383,8 +383,8 @@ Values of that hash are number of covers."
   (let ((coveralls-url "https://coveralls.io/api/v1/jobs"))
     (message "Sending: report to coveralls.io")
     (shut-up
-     (shell-command
-      (format "curl -v --include --form json_file=@%s %s" undercover--report-file-path coveralls-url)))
+      (shell-command
+       (format "curl -v --include --form json_file=@%s %s" undercover--report-file-path coveralls-url)))
     (message "Sending: OK")))
 
 (defun undercover--coveralls-report ()
@@ -468,6 +468,7 @@ on `kill-emacs' and send it to coveralls.io."
 ;; gcov funcs
 
 (defun undercover-gcov-collector (files)
+  (message "gcov collector")
   (mapcar #'undercover--gcov-parser files))
 
 (defun undercover--gcov-line-value (original)
