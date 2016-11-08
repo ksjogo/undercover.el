@@ -468,14 +468,13 @@ on `kill-emacs' and send it to coveralls.io."
 ;; gcov funcs
 
 (defun undercover-gcov-collector (files)
-  (message "gcov collector")
   (mapcar #'undercover--gcov-parser files))
 
 (defun undercover--gcov-line-value (original)
   (cond
    ((string= original "#####") 0)
    ((string= original "-") nil)
-   (t (string-to-int original))))
+   (t (string-to-number original))))
 
 (defun undercover--gcov-parser (file)
   (let (coverage)
